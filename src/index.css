@@ -1,0 +1,77 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Instrument palette: graphite chassis, cyan for calibration/optics, amber for measurement overlays. */
+:root {
+  --background: oklch(0.16 0.01 250);
+  --foreground: oklch(0.94 0.005 250);
+  --card: oklch(0.2 0.012 250);
+  --card-foreground: oklch(0.94 0.005 250);
+  --muted: oklch(0.26 0.012 250);
+  --muted-foreground: oklch(0.7 0.015 250);
+  --border: oklch(0.32 0.012 250);
+  --input: oklch(0.34 0.012 250);
+  --primary: oklch(0.78 0.13 210);
+  --primary-foreground: oklch(0.18 0.02 240);
+  --secondary: oklch(0.3 0.015 250);
+  --secondary-foreground: oklch(0.94 0.005 250);
+  --accent: oklch(0.8 0.15 75);
+  --accent-foreground: oklch(0.2 0.03 70);
+  --destructive: oklch(0.65 0.2 25);
+  --success: oklch(0.75 0.16 150);
+  --warning: oklch(0.82 0.15 85);
+  --ring: oklch(0.78 0.13 210);
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Roboto Mono', Menlo, monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+.readout {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
