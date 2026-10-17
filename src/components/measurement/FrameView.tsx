@@ -352,7 +352,9 @@ export function FrameView({ frame }: { frame: CapturedFrame }) {
           </div>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      {/* Single line on purpose: if this bar wrapped as the cursor readout grows, the frame view
+          would change height under the pointer and shift the image mid-measurement. */}
+      <div className="flex items-center gap-x-4 overflow-hidden whitespace-nowrap text-xs text-muted-foreground [&>*]:shrink-0">
         <span className="readout">
           {cursor ? `x ${cursor.x.toFixed(1)}  y ${cursor.y.toFixed(1)} px` : 'x —  y — px'}
           {cursor && cal && calOk ? `  (${(cursor.x * cal.umPerPx).toFixed(1)}, ${(cursor.y * cal.umPerPx).toFixed(1)} µm)` : ''}
@@ -360,7 +362,7 @@ export function FrameView({ frame }: { frame: CapturedFrame }) {
         <span className="readout">digital zoom {(v.scale * 100).toFixed(0)} %</span>
         <Badge variant={frame.quality.acceptable ? 'success' : 'destructive'}>{frame.quality.acceptable ? 'image quality accepted' : 'quality rejected'}</Badge>
         <Badge variant={calStatus === 'verified' ? 'success' : calStatus === 'calibrated' ? 'warning' : 'destructive'}>calibration: {calStatus}</Badge>
-        <span className="min-w-0 flex-1 truncate" title={activeHint}>
+        <span className="min-w-0 flex-1 !shrink truncate" title={activeHint}>
           {activeHint}
         </span>
       </div>
