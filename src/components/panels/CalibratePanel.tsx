@@ -92,7 +92,7 @@ export function CalibratePanel() {
 
   return (
     <div className="space-y-3">
-      <Card>
+      <Card data-coach="cal-register">
         <CardHeader>
           <CardTitle>Calibration register</CardTitle>
         </CardHeader>
@@ -146,10 +146,10 @@ export function CalibratePanel() {
           <CardContent className="space-y-2.5">
             {!pendingPair && (
               <div className="flex flex-wrap gap-1.5">
-                <Button size="sm" onClick={() => setTool('calibrate')} data-testid="start-calibrate">
+                <Button size="sm" onClick={() => setTool('calibrate')} data-testid="start-calibrate" data-coach="start-calibrate">
                   1 · Pick two graduations
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setTool('verify')} disabled={!cal}>
+                <Button size="sm" variant="outline" onClick={() => setTool('verify')} disabled={!cal} data-coach="start-verify" data-testid="start-verify">
                   2 · Verify on another interval
                 </Button>
               </div>
@@ -166,7 +166,7 @@ export function CalibratePanel() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="col-span-2">
                     <Label htmlFor="cal-div">{isImported ? 'Known length between the points (µm)' : `Number of 0.01 mm divisions between the lines`}</Label>
-                    <Input id="cal-div" inputMode="decimal" value={divisions} onChange={(e) => setDivisions(e.target.value)} placeholder={isImported ? 'e.g. 500' : 'e.g. 80'} data-testid="cal-divisions" />
+                    <Input id="cal-div" inputMode="decimal" value={divisions} onChange={(e) => setDivisions(e.target.value)} placeholder={isImported ? 'e.g. 500' : 'e.g. 80'} data-testid="cal-divisions" data-coach="cal-divisions" onKeyDown={(e) => e.key === 'Enter' && submit()} />
                   </div>
                   <div>
                     <Label htmlFor="cal-cert">Reference u (µm, k=1)</Label>
@@ -178,7 +178,7 @@ export function CalibratePanel() {
                   </div>
                 </div>
                 <div className="flex gap-1.5">
-                  <Button size="sm" onClick={submit} data-testid="cal-submit">
+                  <Button size="sm" onClick={submit} data-testid="cal-submit" data-coach="cal-submit">
                     {pendingPair.tool === 'calibrate' ? 'Create calibration' : 'Verify'}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setPendingPair(null)}>

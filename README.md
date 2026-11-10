@@ -8,11 +8,29 @@ Virtual tool wear microscope for **MMT15603 Assessment of Machinability**. Stude
 - **Traceable numbers.** Every reading carries a calibration status and an uncertainty; captures are refused if focus or exposure is unsuitable.
 - **Honest data.** Built-in specimens are synthetic, rendered from documented parameters; real micrographs can be imported and calibrated.
 
-![Flank wear measurement on FW-01](docs/screenshots/vb-measurement.png)
+![Guided tour pointing at the first calibration line](docs/screenshots/tour-calibrate.png)
+
+## What's new in v0.2.0 (10 November 2026)
+
+**Interactive guided tour.** Students no longer have to follow written instructions:
+
+- **Shows where to click.** Each step highlights the exact button with a glowing ring and an animated mouse pointer, and moves on by itself once the student has done it.
+- **"Click here" markers on the image** for the two calibration lines, the cutting-edge reference and the first three VB readings. The student then takes the remaining readings alone.
+- **Focus coaching.** The tour says which focus button to hold and switches from coarse to fine at the right moment.
+- **Welcome screen** for first-time users with a one-click start; the tour can be closed and resumed at any time.
+- **Workflow strip** under the header: five stages with ticks, the next thing to do, and a **Show me how** button.
+- **Easier handling.** Drag the live picture to move the stage; scroll the mouse wheel over it for fine focus (Shift + wheel for coarse).
+- **What's new panel.** Click the version number in the header.
+
+Full history: [CHANGELOG.md](CHANGELOG.md).
+
+| Focus coaching | Edge reference marker |
+|---|---|
+| ![Tour highlighting the coarse focus button](docs/screenshots/tour-focus.png) | ![Tour marker on the original cutting edge](docs/screenshots/tour-edge.png) |
 
 ## How to use
 
-Use a desktop or laptop browser. Your work is saved in that browser; **Reset** (top right) clears it. New users should start with the **Learn** tab: its four guided lessons follow the steps below and tick each one off as you complete it.
+Use a desktop or laptop browser. Your work is saved in that browser; **Reset** (top right) clears it. New users should press **Start the guided tour** on the welcome screen (or **Show me how** in the strip under the header): it points at every control in turn. The written steps below describe the same workflow, and the **Learn** tab keeps the lesson checklists.
 
 ### 1. Set up the microscope (left panel)
 

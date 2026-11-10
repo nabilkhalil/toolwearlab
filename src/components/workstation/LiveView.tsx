@@ -3,7 +3,7 @@ import { Camera, Crosshair, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/alert';
-import { CAMERA, OBJECTIVES } from '@/core/optics';
+import { CAMERA, OBJECTIVES, imageToWorld } from '@/core/optics';
 import { calibrationStatusFor, isUsable } from '@/core/calibration';
 import { exposureStats, lumaFromRgba } from '@/core/imaging';
 import { getSpecimen } from '@/data/specimens';
@@ -166,6 +166,38 @@ export function LiveView() {
     return () => window.removeEventListener('keydown', onKey);
   }, [capture]);
 
+  // Direct manipulation: drag the picture to move the stage, wheel to focus.
+  const imageRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{ x: number; y: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const onDragMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const st = useApp.getState();
+    const k = CAMERA.widthPx / size.w / st.liveDigitalZoom;
+    const c = { x: CAMERA.widthPx / 2, y: CAMERA.heightPx / 2 };
+    const sp = getSpecimen(st.microscope.specimenId);
+    // The specimen point that was under the cursor stays under the cursor.
+    const w = imageToWorld({ x: c.x - (e.clientX - d.x) * k, y: c.y - (e.clientY - d.y) * k }, st.microscope, sp);
+    st.moveStage(w.x - st.microscope.stage.xUm, w.y - st.microscope.stage.yUm);
+    dragRef.current = { x: e.clientX, y: e.clientY };
+  };
+  useEffect(() => {
+    const el = imageRef.current;
+    if (!el) return;
+    let acc = 0;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      acc += e.deltaY;
+      const steps = Math.trunc(acc / 40);
+      if (steps === 0) return;
+      acc -= steps * 40;
+      useApp.getState().focusBy(-Math.max(-5, Math.min(5, steps)) * (e.shiftKey ? 100 : 2));
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
   const calStatus = calibrationStatusFor(cal, microscope.objectiveId);
   // Scale bar from the STUDENT's calibration (µm per sensor px), never from the hidden true scale.
   let bar: { px: number; um: number } | null = null;
@@ -178,7 +210,28 @@ export function LiveView() {
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div ref={wrapRef} className="relative flex min-h-0 flex-1 items-center justify-center">
-        <div className="relative overflow-hidden rounded-md bg-black shadow-[0_0_0_1px_var(--border)]" style={{ width: size.w, height: size.h }}>
+        <div
+          ref={imageRef}
+          className={cn('relative touch-none overflow-hidden rounded-md bg-black shadow-[0_0_0_1px_var(--border)]', dragging ? 'cursor-grabbing' : 'cursor-grab')}
+          style={{ width: size.w, height: size.h }}
+          title="Drag to move the stage. Mouse wheel: fine focus (Shift: coarse)."
+          data-coach="live-view"
+          onPointerDown={(e) => {
+            if (e.button !== 0) return;
+            dragRef.current = { x: e.clientX, y: e.clientY };
+            setDragging(true);
+            e.currentTarget.setPointerCapture(e.pointerId);
+          }}
+          onPointerMove={onDragMove}
+          onPointerUp={() => {
+            dragRef.current = null;
+            setDragging(false);
+          }}
+          onPointerCancel={() => {
+            dragRef.current = null;
+            setDragging(false);
+          }}
+        >
           <canvas ref={viewRef} style={{ width: size.w, height: size.h }} data-testid="live-canvas" aria-label="Live microscope camera view" role="img" />
           {showCrosshair && (
             <svg className="pointer-events-none absolute inset-0" width={size.w} height={size.h} aria-hidden>
@@ -207,13 +260,13 @@ export function LiveView() {
               <Badge variant="warning" className="bg-black/60">Uncalibrated: no scale bar</Badge>
             )}
           </div>
-          <div className="pointer-events-none absolute bottom-2 right-2">
+          <div className="pointer-events-none absolute bottom-2 right-2" data-coach="live-histogram">
             <Histogram hist={hist} />
           </div>
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        <Button onClick={() => void capture()} disabled={capturing} variant="accent" data-testid="capture">
+        <Button onClick={() => void capture()} disabled={capturing} variant="accent" data-testid="capture" data-coach="capture">
           {capturing ? <Loader2 className="animate-spin" /> : <Camera />} Capture frame
         </Button>
         <div className="flex items-center gap-1" role="radiogroup" aria-label="Digital zoom">

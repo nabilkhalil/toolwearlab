@@ -5,7 +5,7 @@ Virtual tool wear microscope for **MMT15603 Assessment of Machinability**
 
 | Item | Value |
 |---|---|
-| Version | 0.1.0-phase1 |
+| Version | 0.2.0 |
 | Status | Phase 1 implemented; acceptance tests passing (§11) |
 | Runtime | 100 % client-side; no account, API key, server or database |
 | Deployment | Static site on GitHub Pages (`.github/workflows/deploy.yml`) |
@@ -288,7 +288,9 @@ carrier of status (badges carry text).
 | A10 | No horizontal overflow at 1440 × 900 and 820 × 1180 | e2e | Pass |
 | A11 | Strict TypeScript build | `tsc -b` | Pass |
 
-Unit tests: 54 passing. E2E: 6 passing (desktop and tablet projects).
+| A12 | Guided tour: a robot that does only what the tour points at reaches a verified calibration and ≥ 8 valid VB readings | `e2e/tour.spec.ts` | Pass |
+
+Unit tests: 60 passing. E2E: 10 passing (desktop and tablet projects).
 
 ---
 
@@ -304,7 +306,20 @@ Unit tests: 54 passing. E2E: 6 passing (desktop and tablet projects).
 
 ---
 
-## 13. Reference data policy
+## 13. Guided tour (v0.2.0, `src/features/coach`)
+
+| Part | Role |
+|---|---|
+| `tour.ts` | 29 steps in five phases. Each step has `done(state)` and `view(state)`; the view resolves, from the live app state, to one concrete action: a control (CSS selector on a `data-coach` attribute) or a point on the captured image. Preconditions (wrong tab, wrong frame, wrong objective) are resolved first, so the tour always points at the next thing that is actually needed. |
+| `CoachOverlay.tsx` | Pointer-transparent overlay: ring on the target, animated mouse pointer, instruction chip and a step card. Auto-advances 0.65 s after `done` becomes true; returns to a *sticky* step if its result disappears (e.g. a frame is deleted). |
+| `bridge.ts` | FrameView publishes its image → window mapping so markers can be placed on the canvas. Display only. |
+| `Dialogs.tsx`, `WorkflowStrip.tsx` | Welcome screen, release notes, and the five-stage progress strip (independent of the tour). |
+
+Design rules: the student always performs the real action on the real control (the tour never acts for them); image markers use the synthetic design geometry and are therefore limited to the practice specimens; the tour gives the first three VB picks and leaves the rest to the student; the graded specimen (FW-02) has no markers.
+
+---
+
+## 14. Reference data policy
 
 Built-in specimens are synthetic and documented in `src/data/specimens.ts`.
 Candidate open datasets for Phase 2 (licence and calibration metadata must be

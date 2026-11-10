@@ -19,6 +19,16 @@ import { uid } from '@/lib/utils';
 
 export type Tool = 'pan' | 'edge' | 'vb' | 'distance' | 'crater-kb' | 'crater-kf' | 'calibrate' | 'verify';
 export type Workspace = 'live' | 'frame';
+export type PanelTab = 'measure' | 'calibrate' | 'results' | 'learn' | 'assess';
+
+/** Interactive tour state. `hold` pauses auto-advance after the student steps back. */
+export interface CoachState {
+  active: boolean;
+  step: number;
+  hold: boolean;
+  seenWelcome: boolean;
+  completed: boolean;
+}
 
 export interface AssessmentState {
   flank: { regularity: 'regular' | 'irregular' | null; toolLifeReached: 'yes' | 'no' | null; submitted: boolean };
@@ -50,7 +60,17 @@ export interface AppState {
   assessment: AssessmentState;
   /** Best sharpness seen per specimen+objective, drives the focus-peaking bar. */
   peakSharpness: Record<string, number>;
+  panelTab: PanelTab;
+  coach: CoachState;
+  /** True once a CSV or PDF has been exported (drives the workflow strip). */
+  exported: boolean;
+  /** Last app version whose release notes the student has opened. */
+  seenVersion: string | null;
 
+  setPanelTab: (t: PanelTab) => void;
+  setCoach: (patch: Partial<CoachState>) => void;
+  markExported: () => void;
+  setSeenVersion: (v: string) => void;
   setMicroscope: (patch: Partial<MicroscopeState>) => void;
   moveStage: (dxUm: number, dyUm: number) => void;
   setStage: (patch: Partial<MicroscopeState['stage']>) => void;
@@ -155,7 +175,15 @@ export const useApp = create<AppState>()(
       tutorial: { lessonId: null, dismissed: {} },
       assessment: initialAssessment,
       peakSharpness: {},
+      panelTab: 'measure',
+      coach: { active: false, step: 0, hold: false, seenWelcome: false, completed: false },
+      exported: false,
+      seenVersion: null,
 
+      setPanelTab: (t) => set({ panelTab: t }),
+      setCoach: (patch) => set((s) => ({ coach: { ...s.coach, ...patch } })),
+      markExported: () => set({ exported: true }),
+      setSeenVersion: (v) => set({ seenVersion: v }),
       setMicroscope: (patch) => set((s) => ({ microscope: { ...s.microscope, ...patch } })),
       moveStage: (dx, dy) =>
         set((s) => ({
@@ -252,7 +280,7 @@ export const useApp = create<AppState>()(
       notePeakSharpness: (key, value) =>
         set((s) => ((s.peakSharpness[key] ?? 0) >= value ? s : { peakSharpness: { ...s.peakSharpness, [key]: value } })),
       resetAll: () =>
-        set({
+        set((s) => ({
           microscope: initialMicroscope(),
           workspace: 'live',
           frames: [],
@@ -265,7 +293,10 @@ export const useApp = create<AppState>()(
           assessment: initialAssessment,
           peakSharpness: {},
           tutorial: { lessonId: null, dismissed: {} },
-        }),
+          panelTab: 'measure',
+          exported: false,
+          coach: { ...s.coach, active: false, step: 0, hold: false, completed: false },
+        })),
     }),
     {
       name: 'toolwearlab:v1',
@@ -284,6 +315,9 @@ export const useApp = create<AppState>()(
         student: s.student,
         tutorial: s.tutorial,
         assessment: s.assessment,
+        coach: s.coach,
+        exported: s.exported,
+        seenVersion: s.seenVersion,
       }),
     },
   ),

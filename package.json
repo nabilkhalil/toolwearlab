@@ -1,7 +1,7 @@
 {
   "name": "toolwearlab",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "ToolWearLab - Virtual Tool Wear Microscope Simulator for MMT15603 Assessment of Machinability",
   "scripts": {

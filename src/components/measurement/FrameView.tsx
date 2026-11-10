@@ -14,6 +14,7 @@ import { fitToViewport, screenToImage, zoomAt, type ViewTransform } from '@/core
 import type { CapturedFrame, SpecimenDef, Vec2 } from '@/core/types';
 import { SPECIMENS } from '@/data/specimens';
 import { useFrameImage } from '@/hooks/useFrameImage';
+import { frameViewBridge } from '@/features/coach/bridge';
 import { useApp, type Tool } from '@/state/store';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +51,8 @@ export function FrameView({ frame }: { frame: CapturedFrame }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const size = useContainerSize(wrapRef);
   const [view, setView] = useState<ViewTransform | null>(null);
+  const viewRef = useRef<ViewTransform | null>(null);
+  viewRef.current = view;
   const [cursor, setCursor] = useState<Vec2 | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const panRef = useRef<{ x: number; y: number; v: ViewTransform } | null>(null);
@@ -95,6 +98,18 @@ export function FrameView({ frame }: { frame: CapturedFrame }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [setPendingPoint, setPendingPair]);
+
+  // Publish the image → window mapping so the guided tour can place "click here" markers.
+  useEffect(() => {
+    frameViewBridge.toClient = (p) => {
+      const r = wrapRef.current?.getBoundingClientRect();
+      const tv = viewRef.current;
+      return r && tv ? { x: r.left + p.x * tv.scale + tv.offsetX, y: r.top + p.y * tv.scale + tv.offsetY } : { x: -999, y: -999 };
+    };
+    return () => {
+      frameViewBridge.toClient = null;
+    };
+  }, []);
 
   if (error) return <div className="grid h-full place-items-center text-sm text-destructive">{error}</div>;
 
@@ -216,6 +231,7 @@ export function FrameView({ frame }: { frame: CapturedFrame }) {
             aria-pressed={tool === t.id}
             title={t.hint}
             data-testid={`tool-${t.id}`}
+            data-coach={`tool-${t.id}`}
           >
             {t.icon}
             <span className="hidden sm:inline">{t.label}</span>
@@ -233,14 +249,14 @@ export function FrameView({ frame }: { frame: CapturedFrame }) {
         >
           <Expand /> 1:1
         </Button>
-        <Button size="sm" variant={showZones ? 'secondary' : 'ghost'} onClick={() => toggle('showZones')} aria-pressed={showZones} title="Show ISO 3685 zones C, B, N (training aid)">
+        <Button size="sm" variant={showZones ? 'secondary' : 'ghost'} onClick={() => toggle('showZones')} aria-pressed={showZones} title="Show ISO 3685 zones C, B, N (training aid)" data-coach="zones">
           <Layers /> Zones
         </Button>
         <Button size="sm" variant={snapOn ? 'secondary' : 'ghost'} onClick={() => toggle('snapToLines')} aria-pressed={snapOn} title="Snap calibration picks to graduation line centres">
           <Magnet /> Snap
         </Button>
       </div>
-      <div ref={wrapRef} className={cn('relative min-h-0 flex-1 overflow-hidden rounded-md bg-black', tool === 'pan' ? 'cursor-grab' : 'cursor-crosshair')} data-testid="frame-view">
+      <div ref={wrapRef} className={cn('relative min-h-0 flex-1 overflow-hidden rounded-md bg-black', tool === 'pan' ? 'cursor-grab' : 'cursor-crosshair')} data-testid="frame-view" data-coach="frame-view">
         {!image && (
           <div className="absolute inset-0 grid place-items-center text-sm text-muted-foreground">
             <span className="flex items-center gap-2">

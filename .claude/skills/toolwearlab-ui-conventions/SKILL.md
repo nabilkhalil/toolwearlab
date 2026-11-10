@@ -19,4 +19,5 @@ description: UI conventions for ToolWearLab (React, TypeScript, Tailwind v4, sha
 - Numbers: `readout` class (monospace, tabular). Units always shown (µm, px, %).
 - Layout: desktop three columns ≥ lg; single column below. Verify no horizontal overflow at 1440×900 and 820×1180 (e2e).
 - Accessibility: radio groups have `role="radiogroup"`/`aria-checked`, toggles `aria-pressed`, icons-only buttons have `aria-label`.
+- Guided tour (`src/features/coach`): any control a tour step points at needs a stable `data-coach="<name>"` attribute; if you rename or move a control, update `tour.ts` and run `e2e/tour.spec.ts` (the robot student). The tour must never perform an action for the student, never show markers on graded specimens, and every step needs a `done` detected from state (or `info: true`). New release = bump `src/version.ts` and `package.json`, add an entry to `src/data/changelog.ts` and `CHANGELOG.md`.
 - Exports: CSV via `core/exportCsv.ts` (pure, tested); PDF via `features/export/pdf.ts` (jsPDF loaded lazily) with overlays burned in by `annotateFrame` from stored coordinates.

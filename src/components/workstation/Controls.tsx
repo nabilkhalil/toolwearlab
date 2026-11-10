@@ -11,7 +11,7 @@ import { useApp } from '@/state/store';
 import { cn } from '@/lib/utils';
 
 /** Button that repeats its action while held (like a focus knob). */
-function HoldButton({ onStep, children, label, className }: { onStep: () => void; children: React.ReactNode; label: string; className?: string }) {
+function HoldButton({ onStep, children, label, className, coach }: { onStep: () => void; children: React.ReactNode; label: string; className?: string; coach?: string }) {
   const timer = useRef<number | null>(null);
   const stop = () => {
     if (timer.current !== null) window.clearTimeout(timer.current);
@@ -35,6 +35,7 @@ function HoldButton({ onStep, children, label, className }: { onStep: () => void
       size="iconSm"
       aria-label={label}
       title={label}
+      data-coach={coach}
       className={className}
       onPointerDown={(e) => {
         e.preventDefault();
@@ -80,6 +81,7 @@ export function SpecimenCard() {
       <CardContent className="space-y-2">
         <select
           aria-label="Load specimen"
+          data-coach="specimen-select"
           className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
           value={specimenId}
           onChange={(e) => loadSpecimen(e.target.value)}
@@ -161,11 +163,11 @@ export function StageCard() {
             <span className="readout">{stage.rotationDeg.toFixed(1)}°</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <HoldButton label="Rotate −0.1°" onStep={() => setStage({ rotationDeg: Math.max(-15, +(useApp.getState().microscope.stage.rotationDeg - 0.1).toFixed(1)) })}>
+            <HoldButton coach="rotate-ccw" label="Rotate −0.1°" onStep={() => setStage({ rotationDeg: Math.max(-15, +(useApp.getState().microscope.stage.rotationDeg - 0.1).toFixed(1)) })}>
               <RotateCcw />
             </HoldButton>
             <Slider aria-label="Insert rotation" min={-15} max={15} step={0.1} value={[stage.rotationDeg]} onValueChange={([v]) => setStage({ rotationDeg: v ?? 0 })} />
-            <HoldButton label="Rotate +0.1°" onStep={() => setStage({ rotationDeg: Math.min(15, +(useApp.getState().microscope.stage.rotationDeg + 0.1).toFixed(1)) })}>
+            <HoldButton coach="rotate-cw" label="Rotate +0.1°" onStep={() => setStage({ rotationDeg: Math.min(15, +(useApp.getState().microscope.stage.rotationDeg + 0.1).toFixed(1)) })}>
               <RotateCw />
             </HoldButton>
           </div>
@@ -193,10 +195,10 @@ export function FocusCard() {
           <div className="space-y-1">
             <div className="text-[11px] text-muted-foreground">Coarse · 100 µm</div>
             <div className="flex gap-1">
-              <HoldButton label="Coarse focus up" onStep={() => focusBy(100)}>
+              <HoldButton coach="focus-coarse-up" label="Coarse focus up" onStep={() => focusBy(100)}>
                 <ChevronsUp />
               </HoldButton>
-              <HoldButton label="Coarse focus down" onStep={() => focusBy(-100)}>
+              <HoldButton coach="focus-coarse-down" label="Coarse focus down" onStep={() => focusBy(-100)}>
                 <ChevronsDown />
               </HoldButton>
             </div>
@@ -204,10 +206,10 @@ export function FocusCard() {
           <div className="space-y-1">
             <div className="text-[11px] text-muted-foreground">Fine · 2 µm</div>
             <div className="flex gap-1">
-              <HoldButton label="Fine focus up" onStep={() => focusBy(2)}>
+              <HoldButton coach="focus-fine-up" label="Fine focus up" onStep={() => focusBy(2)}>
                 <ChevronUp />
               </HoldButton>
-              <HoldButton label="Fine focus down" onStep={() => focusBy(-2)}>
+              <HoldButton coach="focus-fine-down" label="Fine focus down" onStep={() => focusBy(-2)}>
                 <ChevronDown />
               </HoldButton>
             </div>
@@ -215,14 +217,14 @@ export function FocusCard() {
         </div>
         <div>
           <div className="mb-1 flex justify-between text-[11px] text-muted-foreground">
-            <span>Sharpness (relative to best seen)</span>
-            <span className="readout">{(rel * 100).toFixed(0)}%</span>
+            <span title="Relative to the sharpest image seen so far">Sharpness</span>
+            <span className={cn('readout', q?.focusOk ? 'text-success' : 'text-warning')}>{q?.focusOk ? `${(rel * 100).toFixed(0)}% · in focus` : 'not in focus yet'}</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-muted" role="meter" aria-label="Relative sharpness" aria-valuenow={Math.round(rel * 100)} aria-valuemin={0} aria-valuemax={100}>
-            <div className={cn('h-full transition-[width] duration-150', q?.focusOk ? 'bg-success' : 'bg-primary/70')} style={{ width: `${rel * 100}%` }} />
+            <div className={cn('h-full transition-[width] duration-150', q?.focusOk ? 'bg-success' : 'bg-muted-foreground/50')} style={{ width: `${(q?.focusOk ? rel : rel * 0.6) * 100}%` }} />
           </div>
         </div>
-        <p className="text-[11px] leading-relaxed text-muted-foreground">Keys: Q/A coarse, W/S fine, arrows move the stage.</p>
+        <p className="text-[11px] leading-relaxed text-muted-foreground">Shortcuts: mouse wheel over the picture = fine focus (Shift = coarse). Keys Q/A coarse, W/S fine.</p>
       </CardContent>
     </Card>
   );
@@ -247,6 +249,7 @@ export function OpticsCard() {
                 key={id}
                 role="radio"
                 aria-checked={objectiveId === id}
+                data-coach={`objective-${id}`}
                 onClick={() => setObjective(id)}
                 className={cn(
                   'relative cursor-pointer rounded-md border py-1.5 text-sm font-semibold transition-colors',
@@ -288,7 +291,7 @@ export function IlluminationCard() {
   const cam = useApp((s) => s.microscope.camera);
   const setMicroscope = useApp((s) => s.setMicroscope);
   return (
-    <Card>
+    <Card data-coach="illumination">
       <CardHeader>
         <CardTitle>Illumination & camera</CardTitle>
         <Lightbulb className="size-3.5 text-accent" />
