@@ -52,6 +52,8 @@ test.beforeEach(async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await expect(page.getByTestId('live-canvas')).toBeVisible();
+  // First visit shows the welcome dialog; these tests explore without the tour.
+  await page.getByTestId('welcome-skip').click();
 });
 
 test('complete calibration and flank-wear measurement workflow', async ({ page }, info) => {
@@ -62,7 +64,7 @@ test('complete calibration and flank-wear measurement workflow', async ({ page }
   await expect(page.getByText('Defocused')).toBeVisible();
   await page.locator('body').click({ position: { x: 5, y: 5 } });
   await pressN(page, 'a', 9);
-  await expect(page.getByText('In focus')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('In focus', { exact: true })).toBeVisible({ timeout: 10_000 });
 
   // 2. Align: the micrometer is loaded at +0.6°, rotate back by 0.6°.
   for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'Rotate −0.1°' }).click();
@@ -96,7 +98,7 @@ test('complete calibration and flank-wear measurement workflow', async ({ page }
   await page.locator('body').click({ position: { x: 5, y: 5 } });
   await pressN(page, 'q', 36);
   await pressN(page, 'w', 45);
-  await expect(page.getByText('In focus')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('In focus', { exact: true })).toBeVisible({ timeout: 10_000 });
   await shot(page, '03_live_fw01');
   // Undo the earlier rotation so the total rotation is the FW-01 load angle (1.8°).
   for (let i = 0; i < 6; i++) await page.getByRole('button', { name: 'Rotate +0.1°' }).click();
@@ -157,7 +159,7 @@ test('measurement requires a calibration and an edge reference', async ({ page }
   await page.locator('body').click({ position: { x: 5, y: 5 } });
   await pressN(page, 'q', 27);
   await pressN(page, 'w', 45);
-  await expect(page.getByText('In focus')).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText('In focus', { exact: true })).toBeVisible({ timeout: 10_000 });
   await page.getByTestId('capture').click();
   await waitForFrame(page);
   await page.getByTestId('tool-vb').click();

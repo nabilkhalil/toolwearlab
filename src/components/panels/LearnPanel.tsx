@@ -1,9 +1,10 @@
-import { CheckCircle2, ChevronLeft, Circle, Clock } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, Circle, Clock, MousePointerClick } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { WEAR_MODE_INFO } from '@/core/wearCriteria';
 import { LESSONS } from '@/features/tutorials/lessons';
+import { startTour } from '@/features/coach/Dialogs';
 import { useApp } from '@/state/store';
 import { cn } from '@/lib/utils';
 
@@ -16,9 +17,27 @@ export function LearnPanel() {
   if (!lesson) {
     return (
       <div className="space-y-3">
+        <div className="rounded-lg border border-accent/40 bg-accent/10 p-3">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <MousePointerClick className="size-4 text-accent" /> Interactive guided tour
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+            Shows you exactly where to click, one step at a time, from first focus to the final report. It waits while you do each step.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <Button size="sm" variant="accent" onClick={() => startTour()} data-testid="learn-tour">
+              {state.coach.step > 0 && !state.coach.completed ? 'Resume tour' : state.coach.completed ? 'Take the tour again' : 'Start tour'}
+            </Button>
+            {state.coach.step > 0 && !state.coach.completed && (
+              <Button size="sm" variant="ghost" onClick={() => startTour(true)}>
+                Restart from the beginning
+              </Button>
+            )}
+          </div>
+        </div>
         <Card>
           <CardHeader>
-            <CardTitle>Guided lessons</CardTitle>
+            <CardTitle>Lesson checklists</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1.5">
             {LESSONS.map((l) => {

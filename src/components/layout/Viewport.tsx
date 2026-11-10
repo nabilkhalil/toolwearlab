@@ -75,7 +75,7 @@ export function Viewport() {
   return (
     <div className="flex h-full min-h-0 flex-col gap-2">
       <div className="flex flex-wrap items-center gap-1.5">
-        <Button size="sm" variant={workspace === 'live' ? 'default' : 'outline'} onClick={() => setActiveFrame(null)} data-testid="ws-live">
+        <Button size="sm" variant={workspace === 'live' ? 'default' : 'outline'} onClick={() => setActiveFrame(null)} data-testid="ws-live" data-coach="ws-live">
           <Microscope /> Live view
         </Button>
         <select
@@ -84,6 +84,7 @@ export function Viewport() {
           value={workspace === 'frame' && frame ? frame.id : ''}
           onChange={(e) => e.target.value && setActiveFrame(e.target.value)}
           data-testid="frame-select"
+          data-coach="frame-select"
         >
           <option value="">{frames.length ? `Captured frames (${frames.length})…` : 'No frames captured'}</option>
           {frames.map((f) => (

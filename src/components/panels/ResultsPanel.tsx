@@ -71,6 +71,7 @@ export function ResultsPanel() {
       appVersion: APP_VERSION,
     });
     downloadBlob(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }), `${fileBase}.csv`);
+    useApp.getState().markExported();
   };
 
   const exportPdf = async () => {
@@ -82,6 +83,7 @@ export function ResultsPanel() {
       const annotated = annotateFrame(img.canvas, session?.edge ?? null, ctx.points, ctx.lines);
       const blob = await buildPdf({ ctx, student, annotated });
       downloadBlob(blob, `${fileBase}.pdf`);
+      useApp.getState().markExported();
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
@@ -103,7 +105,7 @@ export function ResultsPanel() {
         <p className="p-2 text-sm text-muted-foreground">Results appear here for the selected frame.</p>
       ) : (
         <>
-          <Card>
+          <Card data-coach="result-card">
             <CardHeader>
               <CardTitle>Flank wear result</CardTitle>
               <Badge variant="muted">{frame.label}</Badge>
@@ -152,7 +154,7 @@ export function ResultsPanel() {
               <p className="text-[11px] leading-relaxed text-muted-foreground">“Indeterminate” means the limit lies within the expanded uncertainty of your result: take more readings or improve calibration before deciding.</p>
             </CardContent>
           </Card>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2" data-coach="export-row">
             <Button variant="outline" onClick={exportCsv} disabled={!session} data-testid="export-csv">
               <FileSpreadsheet /> Export CSV
             </Button>
